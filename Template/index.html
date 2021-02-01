@@ -5,39 +5,38 @@
 {% endblock %}
 
 {% block body %}
-    <div class="input-audio">
+    <div class="input-audio" id="audio">
+        <input onclick="takeinput()" type="button" name="record" id="record_button" value="record">
 
-        <form method="POST" action="/input/">
-
-            <input  type="button" name="record" id="record_button" value="record">
-
-        </form>
+     
 
     </div>
     <script>
-        document.getElementById("record_button").addEventListener("click", takeinput());
+        
         function takeinput()
-        {
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-            const mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.start();
-    
-            const audioChunks = [];
-            mediaRecorder.addEventListener("dataavailable", event => {
-            audioChunks.push(event.data);
-            });
-    
-            mediaRecorder.addEventListener("stop", () => {
-            const audioBlob = new Blob(audioChunks);
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
-            audio.play();
-            });
-    
-            setTimeout(() => {
-            mediaRecorder.stop();
-            }, 3000);
-            });
+        {var device = navigator.mediaDevices.getUserMedia({audio: true});
+            var items = [];
+            device.then( stream=> {
+                var recorder= new MediaRecorder(stream);
+                recorder.ondataavailable = e => {
+                    items.push(e.data);
+                    if(recorder.state == 'inactive')
+                    {
+
+                        var blob = new Blob(items, {type: 'audio/webm'});
+                        var audio = document.getElementById("audio");
+                        var mainaudio = document.createElement('audio');
+                        mainaudio.setAttribute('controls', 'controls');
+                        audio.appendChild(mainaudio);
+                        mainaudio.innerHTML = '<source src= "' + URL.createObjectURL(blob) + '" type="video/webm"/>';
+                    }
+                }
+                recorder.start(100);
+                setTimeout(() => {
+                    recorder.stop();
+
+                }, 5000);
+            })
         }
     </script>
 {% endblock %}
